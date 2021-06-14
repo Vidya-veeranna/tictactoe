@@ -1,21 +1,19 @@
 import React, { useState } from 'react';
 import Board from './components/Board';
 import History from './components/History';
+import StatusMessage from './components/StatusMessage';
 import { calculateWinner } from './helper';
 
 import './style/root.scss';
 
+const NEW_GAME = [{ board: Array(9).fill(null), isXNext: true }];
+
 const App = () => {
-  const [history, setHistory] = useState([
-    { board: Array(9).fill(null), isXNext: true },
-  ]);
+  const [history, setHistory] = useState(NEW_GAME);
   const [currentMove, setCurrentMove] = useState(0);
   const current = history[currentMove];
 
-  const winner = calculateWinner(current.board);
-  const message = winner
-    ? `Winner is ${winner}`
-    : `Next player is ${current.isXNext ? 'X' : 'O'}`;
+  const { winner, winningSquares } = calculateWinner(current.board);
 
   const handleClick = position => {
     if (current.board[position] || winner) {
@@ -26,7 +24,7 @@ const App = () => {
       const last = prev[prev.length - 1];
       const newBoard = last.board.map((square, pos) => {
         if (pos === position) {
-          return current.isXNext ? 'X' : 'O';
+          return last.isXNext ? 'X' : 'O';
         }
         return square;
       });
@@ -39,12 +37,36 @@ const App = () => {
     setCurrentMove(move);
   };
 
+  const NewGame = () => {
+    setHistory(NEW_GAME);
+    setCurrentMove(0);
+  };
+
   return (
     <div className="app">
-      <h2>TIC TAC TOE</h2>
-      <h2>{message}</h2>
-      <Board board={current.board} handleClick={handleClick} />
+      <h2>
+        TIC{' '}
+        <span className={`${current.isXNext ? 'text-orange' : 'text-green'}`}>
+          TAC
+        </span>{' '}
+        TOE
+      </h2>
+      <StatusMessage winner={winner} current={current} />
+      <Board
+        board={current.board}
+        handleClick={handleClick}
+        winningSquares={winningSquares}
+      />
+      <button
+        type="button"
+        onClick={NewGame}
+        className={`btn-reset ${winner ? 'active' : ''}`}
+      >
+        Start Game
+      </button>
+      <h2 style={{ fontWeight: 'normal' }}>Current Game History</h2>
       <History history={history} moveTo={moveTo} currentMove={currentMove} />
+      <div className="bg-balls" />
     </div>
   );
 };
